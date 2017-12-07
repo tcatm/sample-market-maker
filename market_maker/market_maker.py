@@ -406,19 +406,32 @@ class OrderManager:
                 else:
                     logger.error("Unknown error on amend: %s. Exiting" % errorObj)
                     sys.exit(1)
+            except Exception as e:
+                logger.error(e)
+                sleep(0.5)
+                return self.place_orders()
 
         if len(to_create) > 0:
             logger.info("Creating %d orders:" % (len(to_create)))
             for order in reversed(to_create):
                 logger.info("%4s %d @ %.*f" % (order['side'], order['orderQty'], tickLog, order['price']))
-            self.exchange.create_bulk_orders(to_create)
+            try:
+                self.exchange.create_bulk_orders(to_create)
+            except Exception as e:
+                logger.error(e)
+                sleep(0.5)
+                return self.place_orders()
 
         # Could happen if we exceed a delta limit
         if len(to_cancel) > 0:
             logger.info("Canceling %d orders:" % (len(to_cancel)))
             for order in reversed(to_cancel):
                 logger.info("%4s %d @ %.*f" % (order['side'], order['leavesQty'], tickLog, order['price']))
-            self.exchange.cancel_bulk_orders(to_cancel)
+            try:
+                self.exchange.cancel_bulk_orders(to_cancel)
+            except Exception as e:
+                logger.error(e)
+                sleep(0.5)
 
     ###
     # Position Limits
